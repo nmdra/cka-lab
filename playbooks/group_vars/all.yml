@@ -1,0 +1,28 @@
+---
+# =============================================================
+# CKA Lab — group_vars/all.yml
+# All version pins live here — bump one variable, everything
+# picks it up on the next `vagrant provision`.
+# =============================================================
+
+# ── Kubernetes ────────────────────────────────────────────────
+# k8s_version / k8s_minor are set as extra_vars in the Vagrantfile
+# and override these defaults at provision time.
+k8s_version: "1.36.2"   # latest stable — change to 1.35.x for exact CKA exam match
+k8s_minor:   "1.36"     # used to build pkgs.k8s.io repo URL
+
+# ── Container Runtime ────────────────────────────────────────
+# Package: containerd.io (Docker's upstream APT package, not Ubuntu's containerd)
+# containerd 2.3.x — Docker repo provides the latest; no hardcoded patch needed.
+# Use 'present' to install latest or 'state: present' with an exact version
+# retrieved from: apt-cache madison containerd.io
+containerd_package: "containerd.io"
+
+# ── CNI ───────────────────────────────────────────────────────
+pod_network_cidr: "192.168.0.0/16"   # Calico default; must not overlap node/service CIDRs
+calico_version: "v3.32.0"            # https://github.com/projectcalico/calico/releases
+
+# ── Ingress ────────────────────────────────────────────
+# ingress-nginx: EOL March 24, 2026 but kept for Ingress lab practice.
+# Do NOT use in production. Lab-only.
+nginx_ingress_version: "1.15.1"   # https://github.com/kubernetes/ingress-nginx/releases (final release)

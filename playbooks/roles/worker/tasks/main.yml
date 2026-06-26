@@ -1,0 +1,22 @@
+---
+# =============================================================
+# roles/worker/tasks/main.yml
+# Runs on: workers group
+# Waits for the join command saved by control-plane, then joins.
+# =============================================================
+
+- name: Wait for join.sh to be written by controlplane (max 3 min)
+  wait_for:
+    path: /vagrant/configs/join.sh
+    timeout: 180
+
+- name: Join the cluster
+  shell: bash /vagrant/configs/join.sh
+  args:
+    creates: /etc/kubernetes/kubelet.conf  # skip if already joined
+
+- name: Verify kubelet is running
+  service:
+    name: kubelet
+    state: started
+    enabled: true

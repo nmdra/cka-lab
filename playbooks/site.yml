@@ -1,0 +1,26 @@
+---
+# =============================================================
+# site.yml — top-level playbook
+# Execution order:
+#   1. common   → all nodes (kernel, containerd, kubeadm/kubelet/kubectl)
+#   2. control  → controlplane only (kubeadm init, CNI, Gateway API, NGINX GF)
+#   3. workers  → worker nodes (join cluster)
+# =============================================================
+
+- name: Apply common configuration to all nodes
+  hosts: all
+  become: true
+  roles:
+    - common
+
+- name: Bootstrap the control-plane
+  hosts: control
+  become: true
+  roles:
+    - control-plane
+
+- name: Join worker nodes to the cluster
+  hosts: workers
+  become: true
+  roles:
+    - worker

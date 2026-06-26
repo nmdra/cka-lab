@@ -1,0 +1,157 @@
+---
+# =============================================================
+# roles/control-plane/tasks/main.yml
+# Runs only on: controlplane
+#
+# Stack installed:
+#   - kubeadm init (Calico CNI)
+#   - metrics-server (patched for lab TLS)
+#   - ingress-nginx v1.15.1    (EOL but kept for Ingress practice)
+# =============================================================
+
+# ── Cluster init ──────────────────────────────────────────────
+- name: Create kubeadm init config directory
+  file:
+    path: /etc/kubernetes
+    state: directory
+    mode: '0755'
+
+- name: Write kubeadm init config
+  copy:
+    dest: /tmp/kubeadm-config.yaml
+    content: |
+      apiVersion: kubeadm.k8s.io/v1beta4
+      kind: InitConfiguration
+      localAPIEndpoint:
+        advertiseAddress: {{ node_ip }}
+        bindPort: 6443
+      ---
+      apiVersion: kubeadm.k8s.io/v1beta4
+      kind: ClusterConfiguration
+      kubernetesVersion: "v{{ k8s_version }}"
+      networking:
+        podSubnet: "{{ pod_network_cidr }}"
+        serviceSubnet: "10.96.0.0/12"
+      ---
+      apiVersion: kubelet.config.k8s.io/v1beta1
+      kind: KubeletConfiguration
+      cgroupDriver: systemd
+    mode: '0644'
+
+- name: Initialize Kubernetes cluster
+  command: kubeadm init --config /tmp/kubeadm-config.yaml --upload-certs
+  args:
+    creates: /etc/kubernetes/admin.conf
+  register: kubeadm_init
+
+- name: Create .kube directory for vagrant user
+  file:
+    path: /home/vagrant/.kube
+    state: directory
+    owner: vagrant
+    group: vagrant
+    mode: '0755'
+
+- name: Copy admin.conf to vagrant user
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /home/vagrant/.kube/config
+    remote_src: true
+    owner: vagrant
+    group: vagrant
+    mode: '0600'
+
+# ── Convenience: root user kubeconfig ────────────────────────
+- name: Set KUBECONFIG for root
+  lineinfile:
+    path: /root/.bashrc
+    line: "export KUBECONFIG=/etc/kubernetes/admin.conf"
+    state: present
+
+# ── Calico CNI ───────────────────────────────────────────────
+- name: Wait for API server to be reachable
+  wait_for:
+    host: "{{ node_ip }}"
+    port: 6443
+    timeout: 120
+
+- name: Install Calico CNI v{{ calico_version }}
+  become_user: vagrant
+  command: >
+    kubectl --kubeconfig=/home/vagrant/.kube/config apply -f
+    https://raw.githubusercontent.com/projectcalico/calico/{{ calico_version }}/manifests/calico.yaml
+  register: calico_result
+  changed_when: "'configured' in calico_result.stdout or 'created' in calico_result.stdout"
+
+- name: Wait for Calico daemonset rollout
+  become_user: vagrant
+  command: >
+    kubectl --kubeconfig=/home/vagrant/.kube/config -n kube-system
+    rollout status daemonset/calico-node --timeout=180s
+  changed_when: false
+
+# ── metrics-server ────────────────────────────────────────────
+- name: Install metrics-server (latest)
+  become_user: vagrant
+  command: >
+    kubectl --kubeconfig=/home/vagrant/.kube/config apply -f
+    https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+  register: metrics_result
+  changed_when: "'configured' in metrics_result.stdout or 'created' in metrics_result.stdout"
+
+- name: Patch metrics-server for self-signed kubelet certs (lab only)
+  become_user: vagrant
+  command: >
+    kubectl --kubeconfig=/home/vagrant/.kube/config -n kube-system
+    patch deployment metrics-server --type=json
+    -p '[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"}]'
+  register: patch_result
+  changed_when: "'patched' in patch_result.stdout"
+  failed_when: patch_result.rc != 0 and 'not patched' not in patch_result.stdout
+
+# ── ingress-nginx v1.15.1 ─────────────────────────────────────
+# NOTE: ingress-nginx reached EOL March 24, 2026. Kept for Ingress practice.
+- name: Install ingress-nginx v{{ nginx_ingress_version }} (EOL — lab practice only)
+  become_user: vagrant
+  command: >
+    kubectl --kubeconfig=/home/vagrant/.kube/config apply -f
+    https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v{{ nginx_ingress_version }}/deploy/static/provider/baremetal/deploy.yaml
+  register: ingress_result
+  changed_when: "'configured' in ingress_result.stdout or 'created' in ingress_result.stdout"
+
+# ── configs/ shared folder ────────────────────────────────────
+- name: Ensure /vagrant/configs directory exists
+  file:
+    path: /vagrant/configs
+    state: directory
+    mode: '0755'
+
+# ── Join command for workers ──────────────────────────────────
+- name: Generate kubeadm join command
+  command: kubeadm token create --print-join-command
+  register: join_command
+  changed_when: false
+
+- name: Save join command to shared file
+  copy:
+    content: "{{ join_command.stdout }}\n"
+    dest: /vagrant/configs/join.sh
+    mode: '0755'
+
+# ── Save kubeconfig to shared folder ──────────────────────────
+- name: Save admin.conf to shared folder (configs/config)
+  copy:
+    src: /home/vagrant/.kube/config
+    dest: /vagrant/configs/config
+    remote_src: true
+    mode: '0644'
+
+- name: Show cluster info
+  become_user: vagrant
+  command: kubectl --kubeconfig=/home/vagrant/.kube/config cluster-info
+  register: cluster_info
+  changed_when: false
+
+- name: Print cluster info
+  debug:
+    msg: "{{ cluster_info.stdout_lines }}"

@@ -1,0 +1,17 @@
+---
+# roles/common/handlers/main.yml
+# Handlers are triggered by "notify" directives in tasks/main.yml
+
+- name: Apply sysctl
+  command: sysctl --system
+  changed_when: false
+
+- name: Restart containerd
+  service:
+    name: containerd
+    state: restarted
+
+- name: Restart kubelet
+  service:
+    name: kubelet
+    state: restarted
