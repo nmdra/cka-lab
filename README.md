@@ -88,6 +88,24 @@ To practice version upgrades or align strictly with the current active CNCF CKA 
 
 ---
 
+## 🐾 Autonomous AI Proctor & Coach (CKA Neko)
+
+This repository bundles an autonomous AI coding assistant skill (**CKA Neko** 🐱🚀) designed to train you under realistic exam conditions.
+
+### Summoning Neko
+In your AI terminal chat (Claude Code / Gemini CLI), invoke Neko:
+```text
+/cka-neko
+```
+
+### Core Skill Capabilities
+- **⏱️ Socratic "Grill Me" Speed Drills:** Isolates 1 complex CKA performance task at a time (RBAC, ETCD restore, Ingress routing, Upgrades, NetworkPolicy) under a 3-minute stopwatch. Refuses to give direct answers; provides progressive Socratic hints instead.
+- **🧹 Nuclear Lab Maintenance (`make rebuild`):** Safely wipes and rebuilds all cluster VMs autonomously with built-in confirmation prompts.
+- **🩺 Self-Healing Diagnostics:** Troubleshoots NotReady nodes, CNI network glitches, and CRI engine errors dynamically against your `Vagrantfile`.
+- **📚 Official Docs Only:** Exclusively fetches reference manifests and quotes directly from official `https://kubernetes.io/docs/` pages (building 100% exam-legal habits).
+
+---
+
 ## 📁 Repository Structure
 
 ```text
