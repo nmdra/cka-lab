@@ -6,6 +6,8 @@ A production-grade, fully automated **Certified Kubernetes Administrator (CKA)**
 
 ## 🏗️ Architecture & Network
 
+![CKA Lab Architecture](./assets/architecture.png)
+
 ```
        [ Host Desktop (Ubuntu) ]
        │  ├── kubectl (via ./configs/config)
