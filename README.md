@@ -8,23 +8,6 @@ A production-grade, fully automated **Certified Kubernetes Administrator (CKA)**
 
 ![CKA Lab Architecture](./assets/architecture.png)
 
-```
-       [ Host Desktop (Ubuntu) ]
-       │  ├── kubectl (via ./configs/config)
-       │  └── VirtualBox Host-Only Net (192.168.56.0/24)
-       │
- ┌─────┴─────────────────────────┬─────────────────────────┐
- │                               │                         │
-▼                               ▼                         ▼
-[ controlplane ]               [ worker01 ]              [ worker02 ]
-192.168.56.10                  192.168.56.11             192.168.56.12
-4 GB RAM / 2 vCPUs             2 GB RAM / 1 vCPU         2 GB RAM / 1 vCPU
-├── kubeadm init               ├── kubeadm join          ├── kubeadm join
-├── Calico CNI (v3.32)         ├── Calico node           ├── Calico node
-├── metrics-server             └── containerd 2.x        └── containerd 2.x
-└── ingress-nginx (v1.15)
-```
-
 > [!TIP]
 > **Zero Manual Setup:** The entire cluster bootstraps, initializes networking, joins worker nodes, and exports the cluster `admin.conf` back to your desktop autonomously upon running `vagrant up`.
 
