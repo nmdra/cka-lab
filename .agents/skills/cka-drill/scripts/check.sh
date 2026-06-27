@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # CKA Drill Grader — shared helper library
+# Lives in: cka-drill skill's scripts/ directory
 # Sourced automatically by AI-generated grade-current.sh scripts.
-# Do not edit the individual grader scripts — they are regenerated per drill.
 #
-# Usage in generated scripts:
-#   source "$(dirname "${BASH_SOURCE[0]}")/lib/check.sh"
+# Generated scripts resolve this file dynamically:
+#   CHECK_SH="$(find ~/.gemini/skills /home/*/Documents \
+#     -path '*/cka-drill/scripts/check.sh' 2>/dev/null | head -1)"
+#   source "$CHECK_SH"
 
 PASS_COUNT=0
 FAIL_COUNT=0
