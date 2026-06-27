@@ -1,14 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# ============================================================
 # CKA Lab — 1 control-plane + 2 workers
-# Box:     bento/ubuntu-24.04 (Noble) — aligns with CKA 2026
-# K8s:     1.36.2 (pin to 1.35.x for exact CKA exam alignment)
-# CNI:     Calico v3.32.0
-# Ingress: NGINX Gateway Fabric (ingress-nginx EOL March 2026)
-# Gateway: Gateway API v1.5.1
-# ============================================================
 
 NUM_WORKERS = 2
 IP_PREFIX   = "192.168.56."
@@ -16,7 +9,7 @@ IP_START    = 10
 
 Vagrant.configure("2") do |config|
   config.vm.box              = "bento/ubuntu-24.04"
-  config.vm.box_check_update = true
+  config.vm.box_check_update = false
 
   # Suppress the vagrant-vbguest plugin if installed (deprecated + broken on Ubuntu 24.04)
   if Vagrant.has_plugin?("vagrant-vbguest")
@@ -42,7 +35,7 @@ Vagrant.configure("2") do |config|
 
     cp.vm.provider "virtualbox" do |vb|
       vb.name   = "cka-controlplane"
-      vb.memory = 4096
+      vb.memory = 2048
       vb.cpus   = 2
       # Disable audio/USB to reduce footprint
       vb.customize ["modifyvm", :id, "--audio", "none"]
@@ -58,7 +51,7 @@ Vagrant.configure("2") do |config|
 
       w.vm.provider "virtualbox" do |vb|
         vb.name   = "cka-worker0#{i}"
-        vb.memory = 2048
+        vb.memory = 1024
         vb.cpus   = 1
         vb.customize ["modifyvm", :id, "--audio", "none"]
         vb.customize ["modifyvm", :id, "--usb", "off"]
