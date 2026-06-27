@@ -11,6 +11,7 @@
 
 # ── kubectl alias + completion ────────────────────────────────
 alias k=kubectl
+# shellcheck source=/dev/null
 source <(kubectl completion bash)
 complete -F __start_kubectl k     # make completion work on alias too
 
