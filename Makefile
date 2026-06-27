@@ -4,9 +4,6 @@
 KUBECONFIG_PATH ?= configs/config
 
 help: ## Show this help menu
-	@echo "===================================================================="
-	@echo "🚀 Autonomous CKA Lab — Makefile Reference"
-	@echo "===================================================================="
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
 up: ## Build and bootstrap cluster from scratch (~4-5 min)
@@ -33,7 +30,7 @@ status: ## Check Vagrant VM state and Kubernetes cluster node health
 	@if [ -f $(KUBECONFIG_PATH) ]; then \
 		kubectl --kubeconfig=$(KUBECONFIG_PATH) get nodes -o wide; \
 	else \
-		echo "⚠️ Kubeconfig not found at $(KUBECONFIG_PATH). Is the cluster booted?"; \
+		echo "Kubeconfig not found at $(KUBECONFIG_PATH). Is the cluster booted?"; \
 	fi
 
 nodes: ## Quick shortcut: get cluster nodes

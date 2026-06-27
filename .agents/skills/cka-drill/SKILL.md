@@ -51,13 +51,14 @@ kubectl get nodes --no-headers | awk '{print $1, $2}'
 
 If any node is `NotReady`: *"Fix the cluster environment with cka-neko before drilling."*
 
-Also ensure the grader library exists:
+Also ensure the grader library exists inside this skill's `scripts/` directory:
 
 ```bash
-ls "$PROJECT_ROOT/drills/lib/check.sh" 2>/dev/null || echo "MISSING — run setup first"
+SKILL_SCRIPTS="$(find ~/.gemini/skills /home/*/Documents -path '*/cka-drill/scripts/check.sh' 2>/dev/null | head -1)"
+[[ -f "$SKILL_SCRIPTS" ]] && echo "check.sh found: $SKILL_SCRIPTS" || echo "MISSING — check skill installation"
 ```
 
-If missing, create it (see Appendix A).
+If missing, the bootstrap is in Appendix A.
 
 ---
 
@@ -103,8 +104,9 @@ Generate both in one step before presenting anything to the student.
 # Scenario: <one-line title>
 set -uo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/lib/check.sh"
+# Resolve check.sh from the skill's scripts/ directory
+CHECK_SH="$(find ~/.gemini/skills /home/*/Documents -path '*/cka-drill/scripts/check.sh' 2>/dev/null | head -1)"
+source "$CHECK_SH"
 
 SCENARIO_TITLE="<domain code> — <short title>"
 
@@ -120,7 +122,7 @@ ACTUAL=$(kubectl get <resource> <name> -n <namespace> \
 print_scorecard "$SCENARIO_TITLE"
 ```
 
-Write the completed script to `$PROJECT_ROOT/drills/grade-current.sh` and `chmod +x` it **before** presenting the task to the student.
+Write the completed script to `/tmp/cka-drill/grade-current.sh` and `chmod +x` it **before** presenting the task to the student. Using `/tmp/` keeps the project repository clean — generated scripts are ephemeral and must never be committed.
 
 ### Step 3 — Present the Scenario
 
@@ -159,7 +161,7 @@ Track hint count — it appears in the scorecard. Maximum 3 hints per scenario.
 When the student says "done", "check it", or "grade me", run the grader immediately:
 
 ```bash
-cd "$PROJECT_ROOT" && bash drills/grade-current.sh
+bash /tmp/cka-drill/grade-current.sh
 ```
 
 Display the full stdout output verbatim. Do not interpret or soften the results — show exactly what passed and failed.
@@ -264,8 +266,8 @@ STATUS=$(vm_exec controlplane \
 
 T-series scenarios (Troubleshooting, 30%) require a broken state to exist. Generate a setup script in addition to the grader:
 
-1. Write the **setup script** to `$PROJECT_ROOT/drills/setup-current.sh`
-2. Run it: `bash drills/setup-current.sh`
+1. Write the **setup script** to `/tmp/cka-drill/setup-current.sh`
+2. Run it: `bash /tmp/cka-drill/setup-current.sh`
 3. Confirm the broken state exists before presenting the task
 4. Write the **grader** that verifies the fixed state
 

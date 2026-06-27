@@ -2,7 +2,7 @@
 
 Certified Kubernetes Administrator (CKA) exam practice environment. Powered by Vagrant (VirtualBox) and Ansible, featuring 1 Control Plane + 2 Worker nodes running on Ubuntu LTS.
 
-> [!INFO]
+> [!IMPORTANT]
 > This lab was created for my personal practice with CKA/CKAD exam scenarios. Feel free to fork it, customize it, and create your own version to match your learning goals.
 >
 > If you are looking for a Kind Kubernetes cluster setup, check out:

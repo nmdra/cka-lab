@@ -2,3 +2,4 @@ configs/config
 configs/join.sh
 .vagrant/
 *.retry
+*.log
